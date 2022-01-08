@@ -1,78 +1,136 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.borlcand.rcon</groupId>
-    <artifactId>BungeeRcon</artifactId>
-    <version>2.1</version>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <repositories>
-        <repository>
-            <id>bungeecord-repo</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </repository>
-        <!--repository>
-            <id>yamler-repo</id>
-            <url>http://nexus.cube-space.net/content/groups/public</url>
-        </repository-->
-    </repositories>
+	<parent>
+		<groupId>de.xxschrandxx.wsc</groupId>
+		<artifactId>MinecraftLinker-parent</artifactId>
+		<version>1</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
-                <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.4.3</version>
-                <configuration>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+	<groupId>de.xxschrandxx.wsc</groupId>
+	<artifactId>MinecraftLinker-RCON</artifactId>
+	<version>${global.plugin.version}</version>
+	<packaging>jar</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>${netty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>net.md-5</groupId>
-            <artifactId>bungeecord-api</artifactId>
-            <version>1.7-SNAPSHOT</version>
-            <type>jar</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.cubespace</groupId>
-            <artifactId>Yamler-Core</artifactId>
-            <version>2.2.3-SNAPSHOT</version>
-            <scope>system</scope>
-            <type>jar</type>
-            <systemPath>${project.basedir}/lib/Yamler.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.3.1</version>
-        </dependency>
+	<name>WSC-MinecraftLinker-rcon</name>
+	<url>https://github.com/xXSchrandXx/WSC-MinecraftLinker</url>
 
-    </dependencies>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <netty.version>4.0.23.Final</netty.version>
-    </properties>
-    <name>BungeeCord RCON</name>
+	<dependencies>
+		<!-- Spigot Dep -->
+		<dependency>
+			<groupId>org.spigotmc</groupId>
+			<artifactId>spigot-api</artifactId>
+			<version>${global.spigot.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- Bungee Dep -->
+		<dependency>
+			<groupId>net.md-5</groupId>
+			<artifactId>bungeecord-api</artifactId>
+			<version>${global.bungee.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+
+		<defaultGoal>install</defaultGoal>
+		<sourceDirectory>src/main/java</sourceDirectory>
+
+		<plugins>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<configuration>
+							<source>${maven.compiler.source}</source>
+							<target>${maven.compiler.source}</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.1.1</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<phase>package</phase>
+						<configuration>
+							<source>${maven.compiler.source}</source>
+							<javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+							<additionalparam>-Xdoclint:all -Xdoclint:-missing</additionalparam>
+							<additionalOptions>-Xdoclint:all -Xdoclint:-missing</additionalOptions>
+							<additionalJOptions>
+								<additionalJOption>-Xdoclint:all</additionalJOption>
+								<additionalJOption>-Xdoclint:-missing</additionalJOption>
+							</additionalJOptions>
+						</configuration>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>wagon-maven-plugin</artifactId>
+				<version>2.0.2</version>
+				<executions>
+					<execution>
+						<id>upload-javadoc</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>upload</goal>
+						</goals>
+						<configuration>
+							<serverId>gamestrike</serverId>
+							<fromDir>${project.build.directory}</fromDir>
+							<includes>apidocs/**, ${project.artifactId}-${project.version}.jar</includes>
+							<excludes>*javadoc.jar,*shaded.jar</excludes>
+							<url>dav://maven.gamestrike.de/docs</url>
+							<toDir>${project.artifactId}/${project.version}</toDir>
+							<optimize>false</optimize>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>3.0.0-M1</version>
+			</plugin>
+		</plugins>
+
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-webdav-jackrabbit</artifactId>
+				<version>3.4.3</version>
+			</extension>
+		</extensions>
+
+	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>gamestrike</id>
+			<name>Gamestrike.de</name>
+			<url>dav://maven.gamestrike.de/mvn/</url>
+		</repository>
+	</distributionManagement>
+
+	<issueManagement>
+		<system>Issues</system>
+		<url>https://github.com/xXSchrandXx/WSC-MinecraftLinker-RCON/issues/new</url>
+	</issueManagement>
+
 </project>
