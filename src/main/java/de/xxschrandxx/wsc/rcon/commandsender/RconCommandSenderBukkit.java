@@ -2,6 +2,7 @@ package de.xxschrandxx.wsc.rcon.commandsender;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -10,23 +11,43 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import net.md_5.bungee.api.chat.BaseComponent;
 
 public class RconCommandSenderBukkit extends RconCommandSender implements RemoteConsoleCommandSender {
 
+    private static RconCommandSenderBukkit instance;
+    private Plugin plugin;
+
+    public RconCommandSenderBukkit(Plugin plugin) {
+        this.plugin = plugin;
+        instance = this;
+    }
+
     public RconCommandSenderBukkit clone() {
-        return new RconCommandSenderBukkit();
+        return new RconCommandSenderBukkit(this.plugin);
+    }
+
+    public static RconCommandSenderBukkit getSender() {
+        return instance;
     }
 
     @Override
     public Server getServer() {
-        return Bukkit.getServer();
+        return this.plugin.getServer();
     }
 
     @Override
     public boolean dispatchCommand(String commandLine) {
-        return getServer().dispatchCommand(this, commandLine);
+        CompletableFuture<Boolean> future = new CompletableFuture<Boolean>();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                future.complete(getServer().dispatchCommand(getSender(), commandLine));
+            }
+        }.runTask(this.plugin);
+        return future.join();
     }
 
     @Override

@@ -15,11 +15,16 @@ import java.util.logging.Logger;
 
 import de.xxschrandxx.wsc.rcon.commandsender.RconCommandSender;
 
-public class RconServer {
+public class RconServer extends Thread {
 
-    private final Logger logger;
-    public Logger getLogger() {
-        return this.logger;
+    private final String password;
+    public String getPassword() {
+        return this.password;
+    }
+
+    private List<InetAddress> whitelist;
+    public List<InetAddress> getWhiteList() {
+        return this.whitelist;
     }
 
     private final RconCommandSender sender;
@@ -27,25 +32,35 @@ public class RconServer {
         return this.sender.clone();
     }
 
+    private final Logger logger;
+    public Logger getLogger() {
+        return this.logger;
+    }
+
     private ServerBootstrap bootstrap = new ServerBootstrap();
     private final EventLoopGroup bossGroup = new NioEventLoopGroup();
     private final EventLoopGroup workerGroup = new NioEventLoopGroup();
 
     public RconServer(final String password, List<InetAddress> whitelist, RconCommandSender sender, Logger logger) {
-        this.logger = logger;
+        this.password = password;
+        this.whitelist = whitelist;
         this.sender = sender;
+        this.logger = logger;
+    }
 
+    @Override
+    public void run() {
         bootstrap
-                .group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class)
-                .childHandler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    public void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline()
-                        .addLast(new RconFramingHandler())
-                        .addLast(new RconHandler(RconServer.this, password, whitelist));
-                    }
-                });
+        .group(bossGroup, workerGroup)
+        .channel(NioServerSocketChannel.class)
+        .childHandler(new ChannelInitializer<SocketChannel>() {
+            @Override
+            public void initChannel(SocketChannel ch) throws Exception {
+                ch.pipeline()
+                .addLast(new RconFramingHandler())
+                .addLast(new RconHandler(RconServer.this, password, whitelist));
+            }
+        });
     }
 
     /**
@@ -64,6 +79,7 @@ public class RconServer {
     public void shutdown() {
         workerGroup.shutdownGracefully();
         bossGroup.shutdownGracefully();
+        this.interrupt();
     }
 
 }

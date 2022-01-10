@@ -62,6 +62,7 @@ public class Rcon {
         }
 
         rconServer = new RconServer(password, whitelist, sender, logger);
+        rconServer.run();
 
         logger.log(Level.INFO, "Binding rcon to address: {0}...", address);
 
@@ -79,7 +80,7 @@ public class Rcon {
     public void stopListener() {
         if (rconServer != null) {
             logger.log(Level.INFO, "Trying to stop RCON listener");
-            
+
             rconServer.shutdown();
         }
     }
