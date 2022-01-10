@@ -1,7 +1,6 @@
 package de.xxschrandxx.wsc.rcon.server;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -60,20 +59,17 @@ public class RconHandler extends SimpleChannelInboundHandler<ByteBuf> {
             if (!this.whitelist.contains(ip)) {
                 sendResponse(ctx, FAILURE, TYPE_COMMAND, "Not whitelisted.");
                 rconServer.getLogger().log(Level.INFO, ip + " not whitelisted.");
+                ctx.disconnect();
             }
         }
 
         int requestId = buf.readIntLE();
         int type = buf.readIntLE();
 
-        rconServer.getLogger().log(Level.INFO, "RequestID: " + requestId + ", Type: " + type);
-
         byte[] payloadData = new byte[buf.readableBytes() - 2];
         buf.readBytes(payloadData);
         String payload = new String(payloadData, StandardCharsets.UTF_8);
 
-        rconServer.getLogger().log(Level.INFO, "Payload: " + payload);
-        
         buf.readBytes(2); // two byte padding
 
         if (type == TYPE_LOGIN) {
@@ -86,17 +82,12 @@ public class RconHandler extends SimpleChannelInboundHandler<ByteBuf> {
     }
 
     private void handleLogin(ChannelHandlerContext ctx, String payload, int requestId) throws IOException {
-        if (password.intern().equals(payload.intern())) {
+        if (password.equals(payload)) {
             loggedIn = true;
-
             sendResponse(ctx, requestId, TYPE_COMMAND, "Successfully logged in.");
-
-            rconServer.getLogger().log(Level.INFO, "Rcon connection from [{0}]", ctx.channel().remoteAddress());
         } else {
             loggedIn = false;
             sendResponse(ctx, FAILURE, TYPE_COMMAND, "Wrong password.");
-
-            rconServer.getLogger().log(Level.INFO, this.password + " is not equal " + payload);
         }
     }
 
@@ -119,25 +110,14 @@ public class RconHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private void sendResponse(ChannelHandlerContext ctx, Integer requestId, Integer type, String payload) throws IOException {
         byte[] payloadData = payload.getBytes(StandardCharsets.UTF_8);
-        int packetSize = 4 + payloadData.length + 1 + 1;
-        ByteBuf buf = ctx.alloc().buffer(4+packetSize);
+        int packetSize = 4 + 4 + payloadData.length + 1 + 1;
+        ByteBuf buf = ctx.alloc().buffer(packetSize);
         buf.writeIntLE(packetSize);
         buf.writeIntLE(requestId);
         buf.writeIntLE(type);
         buf.writeBytes(payloadData);
         buf.writeByte((byte) 0);
         buf.writeByte((byte) 0);
-
-        ByteBuf readBuf = buf.copy();
-        rconServer.getLogger().log(Level.INFO, "Send packet:");
-        rconServer.getLogger().log(Level.INFO, "Size: " + readBuf.readIntLE());
-        rconServer.getLogger().log(Level.INFO, "ID: " + readBuf.readIntLE());
-        rconServer.getLogger().log(Level.INFO, "Response: " + readBuf.readIntLE());
-        byte[] data = new byte[readBuf.readableBytes() - 2];
-        readBuf.readBytes(data);
-        String msg = new String(data, StandardCharsets.UTF_8);
-        rconServer.getLogger().log(Level.INFO, "CMD: " + msg);
-        readBuf.readBytes(2);
 
         ctx.write(buf);
     }

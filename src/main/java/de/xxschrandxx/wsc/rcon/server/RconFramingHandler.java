@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 
-import java.nio.ByteOrder;
 import java.util.List;
 
 /**
@@ -19,8 +18,6 @@ public class RconFramingHandler extends ByteToMessageCodec<ByteBuf> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, ByteBuf out) throws Exception {
-        out.order(ByteOrder.LITTLE_ENDIAN).writeInt(msg.readableBytes());
-        out.writeInt(msg.readableBytes());
         out.writeBytes(msg);
     }
 
@@ -31,7 +28,7 @@ public class RconFramingHandler extends ByteToMessageCodec<ByteBuf> {
         }
 
         in.markReaderIndex();
-        int length = in.order(ByteOrder.LITTLE_ENDIAN).readInt();
+        int length = in.readIntLE();
         if (in.readableBytes() < length) {
             in.resetReaderIndex();
             return;
