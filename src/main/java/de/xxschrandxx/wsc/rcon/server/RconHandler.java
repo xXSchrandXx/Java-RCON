@@ -52,6 +52,23 @@ public class RconHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         InetAddress ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress();
 
+        Integer storedTries = rconServer.connectionTries.get(ip);
+        if (storedTries > 100) {
+            Long lastTime = rconServer.connectionTimes.get(ip);
+            if (lastTime != null) {
+                if (!((System.currentTimeMillis() - lastTime) >= (1 * 60 * 1000))) {
+                    ctx.disconnect();
+                }
+            }
+        }
+
+        int attempts = 1;
+        if (storedTries != null) {
+            attempts += storedTries;
+        }
+        rconServer.connectionTries.put(ip, attempts);
+        rconServer.connectionTimes.put(ip, System.currentTimeMillis());
+
         rconServer.getLogger().log(Level.INFO, "Connection incomming from " + ip + ".");
 
         this.commandSender.setIP(ip);
@@ -70,7 +87,7 @@ public class RconHandler extends SimpleChannelInboundHandler<ByteBuf> {
         buf.readBytes(payloadData);
         String payload = new String(payloadData, StandardCharsets.UTF_8);
 
-        buf.readBytes(2); // two byte padding
+        buf.readBytes(2);
 
         if (type == TYPE_LOGIN) {
             handleLogin(ctx, payload, requestId);

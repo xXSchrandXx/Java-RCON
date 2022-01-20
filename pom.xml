@@ -5,18 +5,18 @@
 
 	<parent>
 		<groupId>de.xxschrandxx.wsc</groupId>
-		<artifactId>MinecraftLinker-parent</artifactId>
+		<artifactId>WSC-Minecraft-Linker-parent</artifactId>
 		<version>1</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<groupId>de.xxschrandxx.wsc</groupId>
-	<artifactId>MinecraftLinker-RCON</artifactId>
+	<groupId>de.xxschrandxx</groupId>
+	<artifactId>Java-RCon</artifactId>
 	<version>${global.plugin.version}</version>
 	<packaging>jar</packaging>
 
-	<name>WSC-MinecraftLinker-rcon</name>
-	<url>https://github.com/xXSchrandXx/WSC-MinecraftLinker</url>
+	<name>Java-RCon</name>
+	<url>https://github.com/xXSchrandXx/Java-RCon</url>
 
 	<dependencies>
 		<!-- Spigot Dep -->

@@ -10,6 +10,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetAddress;
 import java.net.SocketAddress;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -36,6 +37,9 @@ public class RconServer extends Thread {
     public Logger getLogger() {
         return this.logger;
     }
+
+    public HashMap<InetAddress, Integer> connectionTries = new HashMap<InetAddress, Integer>();
+    public HashMap<InetAddress, Long> connectionTimes = new HashMap<InetAddress, Long>();
 
     private ServerBootstrap bootstrap = new ServerBootstrap();
     private final EventLoopGroup bossGroup = new NioEventLoopGroup();
