@@ -53,7 +53,13 @@ public class RconHandler extends SimpleChannelInboundHandler<ByteBuf> {
         InetAddress ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress();
 
         Integer storedTries = rconServer.connectionTries.get(ip);
-        if (storedTries > 100) {
+
+        int attempts = 1;
+        if (storedTries != null) {
+            attempts += storedTries;
+        }
+
+        if (attempts >= 100) {
             Long lastTime = rconServer.connectionTimes.get(ip);
             if (lastTime != null) {
                 if (!((System.currentTimeMillis() - lastTime) >= (1 * 60 * 1000))) {
@@ -62,10 +68,6 @@ public class RconHandler extends SimpleChannelInboundHandler<ByteBuf> {
             }
         }
 
-        int attempts = 1;
-        if (storedTries != null) {
-            attempts += storedTries;
-        }
         rconServer.connectionTries.put(ip, attempts);
         rconServer.connectionTimes.put(ip, System.currentTimeMillis());
 
@@ -119,7 +121,10 @@ public class RconHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
             sendLargeResponse(ctx, requestId, message);
         } else {
-            String message = "No such command";
+            String message = commandSender.flush();
+            if (message.isEmpty()) {
+                message =  "No such command";
+            }
 
             sendLargeResponse(ctx, requestId, String.format("Error executing: %s (%s)", payload, message));
         }
